@@ -1,30 +1,14 @@
+<%-- 
+    Document   : transactions
+    Created on : 29-Jul-2020, 15:07:57
+    Author     : Halith
+--%>
+
 
 <%@ page import = "java.io.*,java.util.*,java.sql.*"%>
 <%@ page import = "javax.servlet.http.*,javax.servlet.*" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%!
-public String check(String accno,String amount,String rec, String date){
-String val="no";
-try{  
-Class.forName("com.mysql.jdbc.Driver");  
-Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3307/bank","root","");  
 
-Statement stmt=con.createStatement();  
-
-ResultSet rs=stmt.executeQuery("insert into transactions(sender,receiver,amount,date) values('"+accno+"','"+rec+"','"+amount+"','"+date+"')");  
-ResultSet rs2=stmt.executeQuery("select balance from users where acc_no ='"+accno+"' ");  
-int bal = rs2.getInt("balance");
-int am=Integer.parseInt(amount);
-bal=bal-am;
-String balance=Integer.toString(bal);
-ResultSet rs3=stmt.executeQuery("update users set balance= '"+balance+"'where acc_no ='"+accno+"' ");  
-con.close();  
-
-}catch(Exception e){System.out.println(e);}
-return "yes";
-}
-
-%>
 
 <%
     String log=(String)session.getAttribute("login");
@@ -36,28 +20,22 @@ return "yes";
        window.location.replace("index.jsp");
     </script>
     <%
-    }else{
+    }    
+else{
 
- String acc_no=(String)session.getAttribute("acc_no");
-String rec=request.getParameter("rec");
-String amount=request.getParameter("amount");
-String date="2020-07-29";
-if(rec!=null){
-    String res=check(acc_no, amount, rec,date);
-  %>
-        <script language="javascript">
-           
-   alert("Transaction Successfull....");
-        window.location.replace("balance.jsp");</script>
-    <%
-}   }  
-
+}
 %>
-<<html>
+<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>ABC Banking ..</title>
 <link href="style.css" rel="stylesheet" type="text/css">
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+</style>
 
 
 </head>
@@ -98,19 +76,48 @@ if(rec!=null){
 	</td>
     
     <td  width="75%" valign="top" style="border-right:#666666 1px dotted;">
-    	<div id="welcome" ><h1>Welcome</h1><br>
-    	  
+        <div id="welcome" ><h1>Welcome :<%=session.getAttribute("name") %></h1>
+    	   
+		    <h1>Transactions</h1>
+                    <table style="width:100%;" >
+                        <tr><td>Sender</td><td>Receiver</td><td>Action</td><td>Amount</td><td>Date</td></tr>
+                   <%
+                   String acc_no=(String)session.getAttribute("acc_no");
 
-<table>
-    <tr><td nowrap="nowrap">Enter Account Number :</td><td><input type="text" required="true" name="rec"></td></tr>
- <tr><td nowrap="nowrap">Enter Amount to transfer :</td><td><input type="text" required="true" name="amount"></td></tr>
-<tr><td></td><td></td><td><input  type="Submit" value="Transfer"></td></tr>
-</table>
 
+
+try{  
+Class.forName("com.mysql.jdbc.Driver");  
+Connection con=DriverManager.getConnection("jdbc:mysql://localhost:3307/bank","root","");  
+String val;
+Statement stmt=con.createStatement();  
+ResultSet rs=stmt.executeQuery("select * from transactions where sender ='"+acc_no+"' or receiver='"+acc_no+"' order by id desc limit 5");  
+while(rs.next()) 
+{
+    String sen= Integer.toString(rs.getInt("sender"));
+    
+if(sen.equals(acc_no)){
+    val="Send";
+}else{
+    val="Received";
+}
+%>
+<tr><td><%=rs.getInt("sender") %></td><td><%=rs.getInt("receiver") %></td><td><%= val %></td><td><%=rs.getInt("amount") %></td><td nowrap="nowrap"><%=rs.getString("date") %></td></tr>
+<%
+}
+con.close();  
+
+}catch(Exception e){System.out.println(e);}
+                   
+                   %>
+                    
+                    
+                    
+                    </table>
 	    	
 	    </div>      
     </td>
-     
+        
 </tr></table>
     </form>
 <div id="footer_top">
